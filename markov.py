@@ -46,6 +46,8 @@ def make_text(chains):
 
     key = choice(chains.keys())
     words = [key[0], key[1]]
+
+    # if len(' '.join(words)) <= 140:
     while key in chains:
         # Keep looping until we have a key that isn't in the chains
         # (which would mean it was the end of our original text).
@@ -54,10 +56,23 @@ def make_text(chains):
         # it would run for a very long time.
 
         word = choice(chains[key])
-        words.append(word)
-        key = (key[1], word)
+        if len(' '.join(words)) <= 130:
+            words.append(word)
+            key = (key[1], word)
 
-    return " ".join(words)
+            if len(' '.join(words)) > 130:
+                if len(' '.join(key)) > 8:
+                    break
+                else:
+                    words.append(word)
+        else:
+            break
+    tweet = " ".join(words)
+
+
+    return tweet
+
+
 
 
 def tweet(chains):
@@ -67,7 +82,15 @@ def tweet(chains):
     # Note: you must run `source secrets.sh` before running this file
     # to make sure these environmental variables are set.
 
-    pass
+    api = twitter.Api(
+        consumer_key=os.environ['TWITTER_CONSUMER_KEY'],
+        consumer_secret=os.environ['TWITTER_CONSUMER_SECRET'],
+        access_token_key=os.environ['TWITTER_ACCESS_TOKEN_KEY'],
+        access_token_secret=os.environ['TWITTER_ACCESS_TOKEN_SECRET'])
+
+    # Send a Tweet
+    status = api.PostUpdate(chains)
+    print status.text
 
 
 # Get the filenames from the user through a command line prompt, ex:
@@ -80,5 +103,9 @@ text = open_and_read_file(filenames)
 # Get a Markov chain
 chains = make_chains(text)
 
+
+tweet_message = make_text(chains)
+
+tweet(tweet_message)
 # Your task is to write a new function tweet, that will take chains as input
 # tweet(chains)
